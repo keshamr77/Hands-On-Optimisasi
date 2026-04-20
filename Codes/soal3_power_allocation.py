@@ -496,58 +496,49 @@ def dual_objective(lam1, lam2, lam3, gamma):
 # ============================================================
 
 def plot_primal_dual_results(gamma, pd_result, output_dir):
-    """Plot hasil primal-dual: variabel dan objektif vs iterasi."""
+    """Plot hasil primal-dual: variabel dan objektif vs iterasi ke dalam plot terpisah."""
     
     iters = range(len(pd_result['p1_hist']))
     
-    fig, axes = plt.subplots(2, 2, figsize=(14, 10))
-    fig.suptitle(f'Algoritma Primal-Dual — γ = {gamma}', fontsize=15, fontweight='bold')
-    
     # Plot 1: p1, p2 vs iterasi
-    ax = axes[0, 0]
+    fig, ax = plt.subplots(figsize=(7, 5))
     ax.plot(iters, pd_result['p1_hist'], 'b-', linewidth=1.5, label='p₁')
     ax.plot(iters, pd_result['p2_hist'], 'r-', linewidth=1.5, label='p₂')
     ax.set_xlabel('Iterasi')
     ax.set_ylabel('Daya')
-    ax.set_title('Variabel Primal (p₁, p₂)')
+    ax.set_title(f'Variabel Primal (p₁, p₂) — γ = {gamma}')
     ax.legend()
     ax.grid(True, alpha=0.3)
+    plt.tight_layout()
+    plt.savefig(os.path.join(output_dir, f'soal3_p1p2_vs_iter_gamma_{gamma}.png'), dpi=150, bbox_inches='tight')
+    plt.close()
     
     # Plot 2: λ1, λ2, λ3 vs iterasi
-    ax = axes[0, 1]
+    fig, ax = plt.subplots(figsize=(7, 5))
     ax.plot(iters, pd_result['lam1_hist'], 'b-', linewidth=1.5, label='λ₁')
     ax.plot(iters, pd_result['lam2_hist'], 'r-', linewidth=1.5, label='λ₂')
     ax.plot(iters, pd_result['lam3_hist'], 'g-', linewidth=1.5, label='λ₃')
     ax.set_xlabel('Iterasi')
     ax.set_ylabel('Pengali Lagrange')
-    ax.set_title('Variabel Dual (λ₁, λ₂, λ₃)')
+    ax.set_title(f'Variabel Dual (λ₁, λ₂, λ₃) — γ = {gamma}')
     ax.legend()
     ax.grid(True, alpha=0.3)
+    plt.tight_layout()
+    plt.savefig(os.path.join(output_dir, f'soal3_lam_vs_iter_gamma_{gamma}.png'), dpi=150, bbox_inches='tight')
+    plt.close()
     
     # Plot 3: Objektif primal dan dual vs iterasi
-    ax = axes[1, 0]
+    fig, ax = plt.subplots(figsize=(7, 5))
     iters_dual = range(len(pd_result['dual_obj_hist']))
     ax.plot(list(iters), pd_result['primal_obj_hist'], 'b-', linewidth=1.5, label='Primal f(p₁,p₂)')
     ax.plot(list(iters_dual), pd_result['dual_obj_hist'], 'r--', linewidth=1.5, label='Dual g(λ)')
     ax.set_xlabel('Iterasi')
     ax.set_ylabel('Nilai Objektif')
-    ax.set_title('Objektif Primal vs Dual')
+    ax.set_title(f'Objektif Primal vs Dual — γ = {gamma}')
     ax.legend()
     ax.grid(True, alpha=0.3)
-    
-    # Plot 4: Duality gap
-    ax = axes[1, 1]
-    min_len = min(len(pd_result['primal_obj_hist']), len(pd_result['dual_obj_hist']))
-    gap = [pd_result['primal_obj_hist'][i+1] - pd_result['dual_obj_hist'][i] 
-           for i in range(min_len)]
-    ax.plot(range(min_len), gap, 'purple', linewidth=1.5)
-    ax.set_xlabel('Iterasi')
-    ax.set_ylabel('Duality Gap')
-    ax.set_title('Duality Gap (Primal - Dual)')
-    ax.grid(True, alpha=0.3)
-    
     plt.tight_layout()
-    plt.savefig(os.path.join(output_dir, f'soal3_primal_dual_gamma_{gamma}.png'), dpi=150, bbox_inches='tight')
+    plt.savefig(os.path.join(output_dir, f'soal3_obj_vs_iter_gamma_{gamma}.png'), dpi=150, bbox_inches='tight')
     plt.close()
 
 # ============================================================
@@ -728,11 +719,15 @@ sehingga:
     # Plot perbandingan λ3 vs γ
     fig, ax = plt.subplots(figsize=(8, 5))
     gammas = gamma_values
-    lam3_values = [results_kkt[g]['lam3'] for g in gammas]
+    
+    # KKT yields 0.0000 for gamma=2.0 due to degeneracy (C1 & C2 perfectly satisfy C3 without C3 being enforced).
+    # We use Primal-Dual's lam3_hist to reflect the active power constraint correctly as discussed in the report.
+    lam3_values = [results_pd[g]['lam3'] for g in gammas]
+    
     ax.bar(range(len(gammas)), lam3_values, color=['#2196F3', '#FF9800', '#F44336'], 
            tick_label=[f'γ={g}' for g in gammas], width=0.5)
     ax.set_xlabel('Threshold γ', fontsize=12)
-    ax.set_ylabel('λ₃*', fontsize=12)
+    ax.set_ylabel('λ₃* (dari Primal-Dual)', fontsize=12)
     ax.set_title('Pengali Lagrange λ₃* vs Threshold γ', fontsize=14, fontweight='bold')
     ax.grid(True, axis='y', alpha=0.3)
     for i, v in enumerate(lam3_values):

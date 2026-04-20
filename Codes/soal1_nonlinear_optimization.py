@@ -368,24 +368,36 @@ Penjelasan mengapa lintasan kedua algoritma dapat berbeda:
      kelengkungan (curvature) fungsi melalui informasi orde kedua (Hessian).
      
 2. KECEPATAN KONVERGENSI:
-   - Steepest Descent memiliki konvergensi linear, sehingga cenderung 
-     menghasilkan pola zig-zag (terutama di daerah lembah sempit).
+   - Steepest Descent memiliki konvergensi linear (Lec 3, hal. 53), sehingga 
+     cenderung menghasilkan pola zig-zag (terutama di daerah lembah sempit).
    - Newton Method memiliki konvergensi kuadratik di dekat solusi optimal,
-     sehingga konvergen jauh lebih cepat (lebih sedikit iterasi).
+     sehingga konvergen jauh lebih cepat. Namun konvergensi kuadratik hanya
+     berlaku ketika Hessian positif definit dan iterasi sudah dekat solusi.
 
-3. SENSITIVITAS TERHADAP TITIK AWAL:
-   - Ketika titik awal dekat dengan saddle point (misal (-0.3, 0.2) dekat 
-     origin), kedua metode bisa konvergen ke minimum lokal yang berbeda 
-     karena arah pencarian awal yang berbeda.
-   - Newton Method lebih "agresif" karena mempertimbangkan kelengkungan,
-     sehingga dapat melompat lebih jauh di awal dan memilih basin of 
-     attraction yang berbeda.
+3. OVERSHOOTING PADA PURE NEWTON (alpha = 1):
+   - Pure Newton (alpha=1, tanpa line search, Lec 3 hal. 36) dapat menghasilkan
+     langkah yang sangat besar ketika Hessian tidak positif definit.
+   - Titik awal (-0.3, 0.2): Hessian negative definite (eig=[-5.52,-4.92]),
+     dekat maximum lokal. Regularisasi menghasilkan langkah d=(-2.42, 11.68),
+     iterasi pertama melompat ke y ~ 11.88 (jauh keluar area plot).
+   - Titik awal (-0.5, -1.5): Hessian indefinite (eig=[-3.00, 21.00]),
+     dekat saddle point. Regularisasi menghasilkan langkah d=(-25.0, 0.19),
+     iterasi pertama melompat ke x ~ -25.5 (jauh keluar area plot).
+   - Ini adalah kelemahan yang diketahui dari Newton Method (Lec 3, hal. 46-48).
+     Meskipun melompat jauh, iterasi berikutnya kembali ke minimum karena di
+     titik-titik jauh Hessian sudah positif definit.
 
-4. MODIFIKASI HESSIAN:
-   - Ketika Hessian tidak positif definit (di dekat saddle point atau 
-     maximum), Newton Method memerlukan modifikasi (regularisasi).
-     Ini mengubah arah pencarian dan bisa menyebabkan lintasan menuju
-     minimum yang berbeda dari Steepest Descent.
+4. SENSITIVITAS TERHADAP TITIK AWAL:
+   - Pada titik awal (2.0, 2.0), SD konvergen ke (-1.2247,-1.2247) sedangkan
+     Newton konvergen ke (1.2247, 1.2247) -- keduanya f* = -2.5 namun lokasi
+     berbeda. Ini karena perbedaan arah pencarian menempatkan kedua algoritma
+     pada basin of attraction yang berbeda.
+
+5. REGULARISASI HESSIAN PADA DAERAH NON-CONVEX:
+   - Ketika Hessian tidak positif definit, digunakan regularisasi H + tau*I
+     (Lecture 3, hal. 48-49) dengan tau = max(0, -lambda_min + 0.1).
+   - Regularisasi mengubah arah pencarian dan besarnya langkah, menyebabkan
+     lintasan Newton berbeda drastis dari Steepest Descent.
 """)
     
     print("Semua plot disimpan di:", output_dir)
